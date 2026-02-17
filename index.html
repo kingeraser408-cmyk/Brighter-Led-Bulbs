@@ -58,5 +58,58 @@
 <a href="tel:09755408615" class="kbzpay-circle" title="Order with KBZPay">
     <img src="images/kbzpay.png" alt="KBZPay">
 </a>
+<!-- Pay with KBZPay Button -->
+<button class="kbzpay-popup-btn" onclick="openKBZPayPopup()">
+💰 Pay with KBZPay
+</button>
+
+<!-- KBZPay Popup -->
+<div id="kbzpayPopup" class="kbzpay-popup">
+
+<div class="kbzpay-popup-content">
+
+<span class="close-btn" onclick="closeKBZPayPopup()">&times;</span>
+
+<h2>Pay with KBZPay</h2>
+
+<img src="images/kbzpay-qr.png" class="kbzpay-qr-img">
+
+<p>Scan with KBZPay App</p>
+
+<!-- Download QR Button -->
+<a href="images/kbzpay-qr.png" download="KBZPay-Brighter-LED-Bulbs.png" class="download-btn">
+⬇ Download QR Code
+</a>
+
+<p><strong>Phone:</strong> 09755408615</p>
+
+<!-- Copy Button -->
+<button onclick="copyKBZNumber()" class="copy-btn">
+Copy Phone Number
+</button>
+
+<p style="font-size:14px;color:gray;margin-top:10px;">
+Using same phone? Download QR → Open KBZPay → Scan → Gallery → Select QR
+</p>
+
+</div>
+
+</div>
+
+<!-- Script -->
+<script>
+function openKBZPayPopup() {
+document.getElementById("kbzpayPopup").style.display = "flex";
+}
+
+function closeKBZPayPopup() {
+document.getElementById("kbzpayPopup").style.display = "none";
+}
+
+function copyKBZNumber() {
+navigator.clipboard.writeText("09755408615");
+alert("KBZPay number copied!");
+}
+</script>
 </body>
   </html>
