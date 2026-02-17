@@ -44,6 +44,8 @@ text-align: center;
 width: 200px;
 }
 
+
+
 .product img {
 width: 150px;
 height: 150px;
@@ -66,4 +68,25 @@ color: white;
 text-align: center;
 padding: 20px;
 margin-top: 20px;
+  }
+
+/* KBZPay Floating Button */
+.kbzpay-float {
+position: fixed;
+bottom: 20px;
+right: 20px;
+background: #00a651;
+color: white;
+padding: 15px 20px;
+border-radius: 50px;
+text-decoration: none;
+font-weight: bold;
+box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+z-index: 1000;
+transition: 0.3s;
+}
+
+.kbzpay-float:hover {
+background: #008f45;
+transform: scale(1.05);
   }
