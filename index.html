@@ -7,154 +7,132 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --primary: #0066ff; --bg: #f4f7fe; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        
-        #login-section { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
-        .login-card { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        
-        #main-dashboard { display: none; }
-        .header { background: linear-gradient(135deg, #0066ff, #0044bb); color: white; padding: 25px; text-align: center; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
-        .balance-card { background: white; width: 85%; margin: -30px auto 20px; padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        
-        .container { padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; color: #555; }
-        input, select { width: 100%; padding: 12px; border: 1.5px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .btn-outline { width: 100%; padding: 12px; background: white; color: var(--primary); border: 2px solid var(--primary); border-radius: 12px; margin-top: 10px; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        .header { background: linear-gradient(135deg, #0066ff, #0044bb); color: white; padding: 30px 20px; text-align: center; border-radius: 0 0 30px 30px; }
+        .balance-card { background: white; width: 85%; margin: -30px auto 20px; padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .container { padding: 15px; }
+        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        select, input { width: 100%; padding: 12px; margin: 8px 0; border: 1.5px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .history-item { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 13px; }
+        .status { float: right; font-weight: bold; color: #ffa500; }
     </style>
 </head>
 <body>
 
-<div id="login-section">
-    <div class="login-card">
-        <h2 style="text-align: center; color: var(--primary);">PPA SMM LOGIN</h2>
-        <div class="input-group">
-            <label>Gmail / User ID</label>
-            <input type="text" id="loginEmail" placeholder="example@gmail.com">
-        </div>
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="loginPass" placeholder="******">
-        </div>
-        <button class="btn-main" onclick="handleAuth()">LOGIN / SIGN UP</button>
-    </div>
-</div>
+<div id="login-section"> </div>
 
-<div id="main-dashboard">
+<div id="main-dashboard" style="display:none;">
     <div class="header">
-        <h2>PPA SMM PANEL</h2>
-        <p>User ID: <span id="displayUserId"></span></p>
+        <h2 style="margin:0">PPA SMM PANEL</h2>
+        <small id="displayUserId"></small>
     </div>
 
     <div class="balance-card">
-        <p style="margin: 0; color: #888;">Available Balance</p>
-        <div style="font-size: 28px; font-weight: bold; color: var(--primary);"><span id="userBalance">0.00</span> MMK</div>
-        
-        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="uploadScreenshot(this)">
-        <button class="btn-outline" onclick="document.getElementById('fileInput').click()">
-            <i class="fa-solid fa-camera"></i> KPay Screenshot ပို့ရန်
-        </button>
+        <p style="margin:0; color:#888;">Available Balance</p>
+        <h2 style="color:var(--primary); margin:10px 0;"><span id="userBalance">0</span> MMK</h2>
+        <button onclick="document.getElementById('fileInput').click()" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:8px 15px; border-radius:20px;">+ Add Funds</button>
+        <input type="file" id="fileInput" style="display:none" onchange="uploadScreenshot(this)">
     </div>
 
     <div class="container">
         <div class="card">
-            <h3 style="margin-top:0"><i class="fa-solid fa-cart-shopping"></i> New Order</h3>
-            <div class="input-group"><label>Service ID</label><input type="number" id="serviceId" placeholder="294"></div>
-            <div class="input-group"><label>Link</label><input type="text" id="link" placeholder="https://..."></div>
-            <div class="input-group"><label>Quantity</label><input type="number" id="qty" placeholder="1000"></div>
+            <h3 style="margin-top:0"><i class="fa-solid fa-cart-plus"></i> New Order</h3>
+            
+            <label>Category</label>
+            <select id="category" onchange="updateServices()">
+                <option value="">Select Category</option>
+                <option value="fb">Facebook Followers</option>
+                <option value="tg">Telegram Views/Members</option>
+                <option value="tt">TikTok Followers</option>
+            </select>
+
+            <label>Service</label>
+            <select id="serviceSelect">
+                <option value="">Choose a service</option>
+            </select>
+
+            <input type="text" id="link" placeholder="Target Link (https://...)">
+            <input type="number" id="qty" placeholder="Quantity (Min: 100)">
+            
             <button class="btn-main" onclick="placeOrder()">PLACE ORDER</button>
         </div>
-        <button class="btn-outline" style="border-color: #ff4444; color: #ff4444;" onclick="logout()">LOGOUT</button>
+
+        <div class="card">
+            <h3 style="margin-top:0"><i class="fa-solid fa-clock-rotate-left"></i> Recent Orders</h3>
+            <div id="historyList">Loading history...</div>
+        </div>
+        
+        <button onclick="logout()" style="width:100%; background:none; border:none; color:red;">Logout</button>
     </div>
 </div>
 
 <script>
-    // Google Script URL
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbw1K1rZxqdQ8lgYmNIedXGd4JFK0LnG1DOxqMSf9U2-zeTcQpfQw_mB-m4D3svCU3V9/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbxuCvE5PelMOERY5wEt_0zRhuoRgsQlWicUaCYWZDb7LGlWZ1_BvEGijHtQqzmITSWo/exec";
 
-    window.onload = function() {
-        const savedId = localStorage.getItem("smm_user_id");
-        if(savedId) showDashboard(savedId);
+    // ဝန်ဆောင်မှုများ စာရင်း (ဒီမှာ ID တွေကို Sheet ထဲကအတိုင်း ပြင်ပါ)
+    const services = {
+        fb: [{id: 294, name: "FB Profile Followers - 500 MMK"}, {id: 300, name: "FB Page Likes - 700 MMK"}],
+        tg: [{id: 348, name: "TG Member (Non Drop) - 400 MMK"}, {id: 350, name: "TG Post Views - 50 MMK"}],
+        tt: [{id: 400, name: "TikTok Followers - 600 MMK"}]
     };
 
-    function handleAuth() {
-        const email = document.getElementById('loginEmail').value;
-        const pass = document.getElementById('loginPass').value;
-        if(!email || !pass) return alert("ဖြည့်စွက်ပါ");
-        localStorage.setItem("smm_user_id", email);
-        showDashboard(email);
-    }
-
-    function showDashboard(uid) {
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('main-dashboard').style.display = 'block';
-        document.getElementById('displayUserId').innerText = uid;
-        fetchBalance(uid);
-    }
-
-    function fetchBalance(uid) {
-        fetch(scriptUrl + "?action=getBalance&userId=" + uid)
-        .then(res => res.text())
-        .then(data => { document.getElementById('userBalance').innerText = data; });
-    }
-
-    // WebIntoApp အတွက် Image Upload ပိုင်းကို JS ဖြင့်သာ ပို့ခြင်း
-    function uploadScreenshot(input) {
-        if (!input.files || !input.files[0]) return;
-        const uid = localStorage.getItem("smm_user_id");
-        const file = input.files[0];
-        const reader = new FileReader();
-
-        alert("ပုံကို ပို့နေပါပြီ၊ ခဏစောင့်ပါ။");
-
-        reader.onload = function(e) {
-            const base64Data = e.target.result.split(',')[1];
-            fetch(scriptUrl, {
-                method: "POST",
-                body: JSON.stringify({
-                    action: "upload",
-                    userId: uid,
-                    image: base64Data
-                })
-            })
-            .then(res => res.text())
-            .then(data => alert(data))
-            .catch(err => alert("Error: " + err));
-        };
-        reader.readAsDataURL(file);
+    function updateServices() {
+        const cat = document.getElementById('category').value;
+        const sel = document.getElementById('serviceSelect');
+        sel.innerHTML = '<option value="">Choose a service</option>';
+        if(cat) {
+            services[cat].forEach(s => {
+                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        }
     }
 
     function placeOrder() {
         const uid = localStorage.getItem("smm_user_id");
-        const sId = document.getElementById('serviceId').value;
+        const sid = document.getElementById('serviceSelect').value;
         const link = document.getElementById('link').value;
         const qty = document.getElementById('qty').value;
-        const balance = parseFloat(document.getElementById('userBalance').innerText);
 
-        if(!sId || !link || !qty) return alert("အချက်အလက် အားလုံးဖြည့်ပါဗျာ။");
-        if (balance <= 0) return alert("လက်ကျန်ငွေမရှိပါ။ ငွေအရင်သွင်းပါဗျာ။");
+        if(!sid || !link || qty < 100) return alert("အချက်အလက်မှန်အောင်ဖြည့်ပါ။");
 
         fetch(scriptUrl, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: "addOrder",
-                userId: uid,
-                serviceId: sId,
-                link: link,
-                quantity: qty
-            })
+            method: "POST",
+            body: JSON.stringify({action: "addOrder", userId: uid, serviceId: sid, link: link, quantity: qty})
         })
         .then(res => res.text())
-        .then(data => alert(data))
-        .catch(err => alert("Order Error: " + err));
+        .then(data => {
+            alert(data);
+            location.reload();
+        });
     }
 
-    function logout() {
-        localStorage.removeItem("smm_user_id");
-        location.reload();
+    // History ကို Load လုပ်ခြင်း
+    function loadHistory() {
+        const uid = localStorage.getItem("smm_user_id");
+        fetch(scriptUrl + "?action=getHistory&userId=" + uid)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('historyList');
+            container.innerHTML = "";
+            data.forEach(row => {
+                container.innerHTML += `<div class="history-item">
+                    <b>ID: ${row[2]}</b> <span class="status">${row[6]}</span><br>
+                    ${row[4]} Qty - ${row[5]} MMK
+                </div>`;
+            });
+        });
     }
+
+    window.onload = function() {
+        const savedId = localStorage.getItem("smm_user_id");
+        if(savedId) {
+            document.getElementById('main-dashboard').style.display = 'block';
+            document.getElementById('displayUserId').innerText = savedId;
+            // Balance နဲ့ History ခေါ်ယူရန်...
+            loadHistory();
+        }
+    };
 </script>
 </body>
 </html>
