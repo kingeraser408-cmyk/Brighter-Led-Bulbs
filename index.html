@@ -68,7 +68,7 @@
 </div>
 
 <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbxuCvE5PelMOERY5wEt_0zRhuoRgsQlWicUaCYWZDb7LGlWZ1_BvEGijHtQqzmITSWo/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbw_AzDrdWy6tFqHKWVgxOaNYs7TTkBPMmierJQgaUN5KYA-qOfPJlXq13BLcuZQeKXD/exec";
 
     // ဝန်ဆောင်မှုများ စာရင်း (ဒီမှာ ID တွေကို Sheet ထဲကအတိုင်း ပြင်ပါ)
     const services = {
@@ -106,7 +106,34 @@
             location.reload();
         });
     }
+    function uploadScreenshot(input) {
+    const file = input.files[0];
+    const reader = new FileReader();
+    const uid = localStorage.getItem("smm_user_id");
 
+    if (!uid) return alert("ကျေးဇူးပြု၍ အရင် Login ဝင်ပါ");
+
+    reader.onload = function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        
+        alert("ပုံပို့နေပါသည်... ခဏစောင့်ပါ");
+        
+        fetch(scriptUrl, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "upload",
+                userId: uid,
+                image: base64Data
+            })
+        })
+        .then(res => res.text())
+        .then(data => {
+            alert(data);
+        })
+        .catch(err => alert("Error: " + err));
+    };
+    reader.readAsDataURL(file);
+}
     // History ကို Load လုပ်ခြင်း
     function loadHistory() {
         const uid = localStorage.getItem("smm_user_id");
