@@ -16,11 +16,22 @@
         .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
         .history-item { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 13px; }
         .status { float: right; font-weight: bold; color: #ffa500; }
+        
+        /* Login Card Style */
+        #login-section { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
+        .login-card { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
-<div id="login-section"> </div>
+<div id="login-section">
+    <div class="login-card">
+        <h2 style="text-align: center; color: var(--primary);">PPA LOGIN</h2>
+        <input type="text" id="loginEmail" placeholder="Email or User ID">
+        <input type="password" id="loginPass" placeholder="Password">
+        <button class="btn-main" onclick="handleAuth()">LOGIN</button>
+    </div>
+</div>
 
 <div id="main-dashboard" style="display:none;">
     <div class="header">
@@ -38,7 +49,6 @@
     <div class="container">
         <div class="card">
             <h3 style="margin-top:0"><i class="fa-solid fa-cart-plus"></i> New Order</h3>
-            
             <label>Category</label>
             <select id="category" onchange="updateServices()">
                 <option value="">Select Category</option>
@@ -46,15 +56,12 @@
                 <option value="tg">Telegram Views/Members</option>
                 <option value="tt">TikTok Followers</option>
             </select>
-
             <label>Service</label>
             <select id="serviceSelect">
                 <option value="">Choose a service</option>
             </select>
-
             <input type="text" id="link" placeholder="Target Link (https://...)">
             <input type="number" id="qty" placeholder="Quantity (Min: 100)">
-            
             <button class="btn-main" onclick="placeOrder()">PLACE ORDER</button>
         </div>
 
@@ -62,20 +69,41 @@
             <h3 style="margin-top:0"><i class="fa-solid fa-clock-rotate-left"></i> Recent Orders</h3>
             <div id="historyList">Loading history...</div>
         </div>
-        
-        <button onclick="logout()" style="width:100%; background:none; border:none; color:red;">Logout</button>
+        <button onclick="logout()" style="width:100%; background:none; border:none; color:red; margin-top:10px;">Logout</button>
     </div>
 </div>
 
 <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbw_AzDrdWy6tFqHKWVgxOaNYs7TTkBPMmierJQgaUN5KYA-qOfPJlXq13BLcuZQeKXD/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbwjCZsNpd7pE0mX7kwISvbRTCt_q8NaxiBMRAo1w7-74BkIA7mBuo11c_2mxMhfQWiL/exec";
 
-    // ဝန်ဆောင်မှုများ စာရင်း (ဒီမှာ ID တွေကို Sheet ထဲကအတိုင်း ပြင်ပါ)
     const services = {
-        fb: [{id: 294, name: "FB Profile Followers - 500 MMK"}, {id: 300, name: "FB Page Likes - 700 MMK"}],
-        tg: [{id: 348, name: "TG Member (Non Drop) - 400 MMK"}, {id: 350, name: "TG Post Views - 50 MMK"}],
-        tt: [{id: 400, name: "TikTok Followers - 600 MMK"}]
+        fb: [{id: 458, name: "Facebook Followers - 1590 MMK"}, {id: 375, name: "Facebook Post Like - 899 MMK"}],
+        tg: [{id: 506, name: "Telegram Member(30day+) - 1350 MMK"}, {id: 294, name: "Telegram Post View - 10 MMK"}],
+        tt: [{id: 505, name: "TikTok Followers - 22900 MMK"}]
     };
+
+    function handleAuth() {
+        const email = document.getElementById('loginEmail').value;
+        if(!email) return alert("Email ဖြည့်ပါ");
+        localStorage.setItem("smm_user_id", email);
+        showDashboard(email);
+    }
+
+    function showDashboard(uid) {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('main-dashboard').style.display = 'block';
+        document.getElementById('displayUserId').innerText = uid;
+        fetchBalance(uid);
+        loadHistory(uid);
+    }
+
+    function fetchBalance(uid) {
+        fetch(scriptUrl + "?action=getBalance&userId=" + uid)
+        .then(res => res.text())
+        .then(data => {
+            document.getElementById('userBalance').innerText = data;
+        });
+    }
 
     function updateServices() {
         const cat = document.getElementById('category').value;
@@ -93,7 +121,6 @@
         const sid = document.getElementById('serviceSelect').value;
         const link = document.getElementById('link').value;
         const qty = document.getElementById('qty').value;
-
         if(!sid || !link || qty < 100) return alert("အချက်အလက်မှန်အောင်ဖြည့်ပါ။");
 
         fetch(scriptUrl, {
@@ -103,45 +130,49 @@
         .then(res => res.text())
         .then(data => {
             alert(data);
-            location.reload();
+            fetchBalance(uid);
+            loadHistory(uid);
         });
     }
+
     function uploadScreenshot(input) {
-    const file = input.files[0];
-    const reader = new FileReader();
-    const uid = localStorage.getItem("smm_user_id");
-
-    if (!uid) return alert("ကျေးဇူးပြု၍ အရင် Login ဝင်ပါ");
-
-    reader.onload = function(e) {
-        const base64Data = e.target.result.split(',')[1];
-        
-        alert("ပုံပို့နေပါသည်... ခဏစောင့်ပါ");
-        
-        fetch(scriptUrl, {
-            method: "POST",
-            body: JSON.stringify({
-                action: "upload",
-                userId: uid,
-                image: base64Data
-            })
-        })
-        .then(res => res.text())
-        .then(data => {
-            alert(data);
-        })
-        .catch(err => alert("Error: " + err));
-    };
-    reader.readAsDataURL(file);
-}
-    // History ကို Load လုပ်ခြင်း
-    function loadHistory() {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const reader = new FileReader();
         const uid = localStorage.getItem("smm_user_id");
+
+        reader.onload = function(e) {
+            const base64Data = e.target.result.split(',')[1];
+            const btn = document.querySelector('button[onclick*="fileInput"]');
+            btn.innerText = "Sending...";
+            btn.disabled = true;
+
+            fetch(scriptUrl, {
+                method: "POST",
+                body: JSON.stringify({ action: "upload", userId: uid, image: base64Data })
+            })
+            .then(res => res.text())
+            .then(data => {
+                alert(data);
+                btn.innerText = "+ Add Funds";
+                btn.disabled = false;
+            })
+            .catch(err => {
+                alert("Error: " + err);
+                btn.innerText = "+ Add Funds";
+                btn.disabled = false;
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function loadHistory(uid) {
         fetch(scriptUrl + "?action=getHistory&userId=" + uid)
         .then(res => res.json())
         .then(data => {
             const container = document.getElementById('historyList');
             container.innerHTML = "";
+            if(data.length === 0) container.innerHTML = "No recent orders.";
             data.forEach(row => {
                 container.innerHTML += `<div class="history-item">
                     <b>ID: ${row[2]}</b> <span class="status">${row[6]}</span><br>
@@ -151,14 +182,14 @@
         });
     }
 
+    function logout() {
+        localStorage.removeItem("smm_user_id");
+        location.reload();
+    }
+
     window.onload = function() {
         const savedId = localStorage.getItem("smm_user_id");
-        if(savedId) {
-            document.getElementById('main-dashboard').style.display = 'block';
-            document.getElementById('displayUserId').innerText = savedId;
-            // Balance နဲ့ History ခေါ်ယူရန်...
-            loadHistory();
-        }
+        if(savedId) showDashboard(savedId);
     };
 </script>
 </body>
