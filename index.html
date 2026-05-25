@@ -16,8 +16,6 @@
         .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
         .history-item { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 13px; }
         .status { float: right; font-weight: bold; color: #ffa500; }
-        
-        /* Login Card Style */
         #login-section { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
         .login-card { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     </style>
@@ -26,10 +24,13 @@
 
 <div id="login-section">
     <div class="login-card">
-        <h2 style="text-align: center; color: var(--primary);">PPA LOGIN</h2>
-        <input type="text" id="loginEmail" placeholder="Email or User ID">
+        <h2 style="text-align: center; color: var(--primary);">PPA PANEL</h2>
+        <input type="text" id="loginEmail" placeholder="Email / User ID">
         <input type="password" id="loginPass" placeholder="Password">
-        <button class="btn-main" onclick="handleAuth()">LOGIN</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-main" style="flex:1;" onclick="handleAuth('login')">LOGIN</button>
+            <button class="btn-main" style="flex:1; background: #34c759;" onclick="handleAuth('signup')">SIGN UP</button>
+        </div>
     </div>
 </div>
 
@@ -52,9 +53,9 @@
             <label>Category</label>
             <select id="category" onchange="updateServices()">
                 <option value="">Select Category</option>
-                <option value="fb">Facebook Followers</option>
-                <option value="tg">Telegram Views/Members</option>
-                <option value="tt">TikTok Followers</option>
+                <option value="fb">Facebook Services</option>
+                <option value="tg">Telegram Services</option>
+                <option value="tt">TikTok Services</option>
             </select>
             <label>Service</label>
             <select id="serviceSelect">
@@ -74,7 +75,7 @@
 </div>
 
 <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbwjCZsNpd7pE0mX7kwISvbRTCt_q8NaxiBMRAo1w7-74BkIA7mBuo11c_2mxMhfQWiL/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbywfYeAIzBOFxy4BMuGXdjvGMoLoqsoCgSdi9jIw1tJa3kPgbwdVnVYRlDNvyCX9ZOq/exec";
 
     const services = {
         fb: [{id: 458, name: "Facebook Followers - 1590 MMK"}, {id: 375, name: "Facebook Post Like - 899 MMK"}],
@@ -82,11 +83,26 @@
         tt: [{id: 505, name: "TikTok Followers - 22900 MMK"}]
     };
 
-    function handleAuth() {
+    function handleAuth(mode) {
         const email = document.getElementById('loginEmail').value;
-        if(!email) return alert("Email ဖြည့်ပါ");
-        localStorage.setItem("smm_user_id", email);
-        showDashboard(email);
+        const pass = document.getElementById('loginPass').value;
+        if(!email || !pass) return alert("Email နှင့် Password ဖြည့်ပါ");
+
+        const action = (mode === 'signup') ? "signUp" : "checkLogin";
+        
+        fetch(`${scriptUrl}?action=${action}&userId=${email}&pass=${pass}`)
+        .then(res => res.text())
+        .then(data => {
+            if(data === "success") {
+                localStorage.setItem("smm_user_id", email);
+                localStorage.setItem("smm_user_pass", pass);
+                showDashboard(email);
+            } else if(data === "exists") {
+                alert("ဒီ Email နဲ့ အကောင့်ရှိပြီးသားပါ။ Login ဝင်ပါဗျာ။");
+            } else {
+                alert("အချက်အလက် မှားယွင်းနေပါသည်။");
+            }
+        });
     }
 
     function showDashboard(uid) {
@@ -100,9 +116,7 @@
     function fetchBalance(uid) {
         fetch(scriptUrl + "?action=getBalance&userId=" + uid)
         .then(res => res.text())
-        .then(data => {
-            document.getElementById('userBalance').innerText = data;
-        });
+        .then(data => { document.getElementById('userBalance').innerText = data; });
     }
 
     function updateServices() {
@@ -110,9 +124,7 @@
         const sel = document.getElementById('serviceSelect');
         sel.innerHTML = '<option value="">Choose a service</option>';
         if(cat) {
-            services[cat].forEach(s => {
-                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-            });
+            services[cat].forEach(s => { sel.innerHTML += `<option value="${s.id}">${s.name}</option>`; });
         }
     }
 
@@ -183,13 +195,14 @@
     }
 
     function logout() {
-        localStorage.removeItem("smm_user_id");
+        localStorage.clear();
         location.reload();
     }
 
     window.onload = function() {
         const savedId = localStorage.getItem("smm_user_id");
-        if(savedId) showDashboard(savedId);
+        const savedPass = localStorage.getItem("smm_user_pass");
+        if(savedId && savedPass) showDashboard(savedId);
     };
 </script>
 </body>
