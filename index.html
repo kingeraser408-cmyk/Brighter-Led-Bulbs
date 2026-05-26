@@ -1,258 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PPA SMM Panel</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root { --primary: #0066ff; --bg: #f4f7fe; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
-        .header { background: linear-gradient(135deg, #0066ff, #0044bb); color: white; padding: 30px 20px; text-align: center; border-radius: 0 0 30px 30px; }
-        .balance-card { background: white; width: 85%; margin: -30px auto 20px; padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .container { padding: 15px; }
-        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        select, input { width: 100%; padding: 12px; margin: 8px 0; border: 1.5px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        
-        /* Recent Orders Styling */
-        .history-item { border-bottom: 1px solid #eee; padding: 12px 0; font-size: 13px; line-height: 1.6; }
-        .history-item:last-child { border-bottom: none; }
-        .status { float: right; font-weight: bold; padding: 2px 8px; border-radius: 5px; text-transform: capitalize; }
-        
-        /* Status Colors */
-        .status-pending { color: #ffa500; background: #fff5e6; }
-        .status-processing { color: #007bff; background: #e6f0ff; }
-        .status-inprogress { color: #17a2b8; background: #e0f7fa; }
-        .status-completed { color: #28a745; background: #e6f4ea; }
-        .status-partial { color: #6f42c1; background: #f3e5f5; }
-        .status-cancelled { color: #dc3545; background: #fdeaea; }
-        
-        .order-link { color: var(--primary); text-decoration: none; word-break: break-all; display: block; margin-top: 4px; font-size: 11px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPA SMM Panel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #0066ff; --bg: #f4f7fe; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        .header { background: linear-gradient(135deg, #0066ff, #0044bb); color: white; padding: 30px 20px; text-align: center; border-radius: 0 0 30px 30px; }
+        .balance-card { background: white; width: 85%; margin: -30px auto 20px; padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .container { padding: 15px; }
+        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        select, input { width: 100%; padding: 12px; margin: 8px 0; border: 1.5px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        
+        /* Recent Orders Styling */
+        .history-item { border-bottom: 1px solid #eee; padding: 12px 0; font-size: 13px; line-height: 1.6; }
+        .history-item:last-child { border-bottom: none; }
+        .status { float: right; font-weight: bold; padding: 2px 8px; border-radius: 5px; text-transform: capitalize; }
+        
+        /* Status Colors */
+        .status-pending { color: #ffa500; background: #fff5e6; }
+        .status-processing { color: #007bff; background: #e6f0ff; }
+        .status-inprogress { color: #17a2b8; background: #e0f7fa; }
+        .status-completed { color: #28a745; background: #e6f4ea; }
+        .status-partial { color: #6f42c1; background: #f3e5f5; }
+        .status-cancelled { color: #dc3545; background: #fdeaea; }
+        
+        .order-link { color: var(--primary); text-decoration: none; word-break: break-all; display: block; margin-top: 4px; font-size: 11px; }
 
-        #login-section { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
-        .login-card { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-    </style>
+        #login-section { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
+        .login-card { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    </style>
 </head>
 <body>
 
 <div id="login-section">
-    <div class="login-card">
-        <h2 style="text-align: center; color: var(--primary);">PPA PANEL</h2>
-        <input type="text" id="loginEmail" placeholder="Email / User ID">
-        <input type="password" id="loginPass" placeholder="Password">
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-main" style="flex:1;" onclick="handleAuth('login')">LOGIN</button>
-            <button class="btn-main" style="flex:1; background: #34c759;" onclick="handleAuth('signup')">SIGN UP</button>
-        </div>
-    </div>
+    <div class="login-card">
+        <h2 style="text-align: center; color: var(--primary);">PPA PANEL</h2>
+        <input type="text" id="loginEmail" placeholder="Email / User ID">
+        <input type="password" id="loginPass" placeholder="Password">
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-main" style="flex:1;" onclick="handleAuth('login')">LOGIN</button>
+            <button class="btn-main" style="flex:1; background: #34c759;" onclick="handleAuth('signup')">SIGN UP</button>
+        </div>
+    </div>
 </div>
 
 <div id="main-dashboard" style="display:none;">
-    <div class="header">
-        <h2 style="margin:0">PPA SMM PANEL</h2>
-        <small id="displayUserId"></small>
-    </div>
+    <div class="header">
+        <h2 style="margin:0">PPA SMM PANEL</h2>
+        <small id="displayUserId"></small>
+    </div>
 
-    <div class="balance-card">
-        <p style="margin:0; color:#888;">Available Balance</p>
-        <h2 style="color:var(--primary); margin:10px 0;"><span id="userBalance">0</span> MMK</h2>
-        <button onclick="document.getElementById('fileInput').click()" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:8px 15px; border-radius:20px;">+ Add Funds</button>
-        <input type="file" id="fileInput" style="display:none" onchange="uploadScreenshot(this)">
-    </div>
+    <div class="balance-card">
+        <p style="margin:0; color:#888;">Available Balance</p>
+        <h2 style="color:var(--primary); margin:10px 0;"><span id="userBalance">0</span> MMK</h2>
+        <button onclick="document.getElementById('fileInput').click()" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:8px 15px; border-radius:20px;">+ Add Funds</button>
+        <input type="file" id="fileInput" style="display:none" onchange="uploadScreenshot(this)">
+    </div>
 
-    <div class="container">
-        <div class="card">
-            <h3 style="margin-top:0"><i class="fa-solid fa-cart-plus"></i> New Order</h3>
-            <label>Category</label>
-            <select id="category" onchange="updateServices()">
-                <option value="">Select Category</option>
-                <option value="fb">Facebook Followers</option>
-                <option value="tg">Telegram Views/Members</option>
-                <option value="tt">TikTok Followers</option>
-            </select>
-            <label>Service</label>
-            <select id="serviceSelect">
-                <option value="">Choose a service</option>
-            </select>
-            <input type="text" id="link" placeholder="Target Link (https://...)">
-            <input type="number" id="qty" placeholder="Quantity (Min: 100)">
-            <button class="btn-main" onclick="placeOrder()">PLACE ORDER</button>
-        </div>
+    <div class="container">
+        <div class="card">
+            <h3 style="margin-top:0"><i class="fa-solid fa-cart-plus"></i> New Order</h3>
+            <label>Category</label>
+            <select id="category" onchange="updateServices()">
+                <option value="">Select Category</option>
+                <option value="fb">Facebook Followers</option>
+                <option value="tg">Telegram Views/Members</option>
+                <option value="tt">TikTok Followers</option>
+            </select>
+            <label>Service</label>
+            <select id="serviceSelect">
+                <option value="">Choose a service</option>
+            </select>
+            <input type="text" id="link" placeholder="Target Link (https://...)">
+            <input type="number" id="qty" placeholder="Quantity (Min: 100)">
+            <button class="btn-main" onclick="placeOrder()">PLACE ORDER</button>
+        </div>
 
-        <div class="card">
-            <h3 style="margin-top:0"><i class="fa-solid fa-clock-rotate-left"></i> Recent Orders</h3>
-            <div id="historyList">Loading history...</div>
-        </div>
-        <button onclick="logout()" style="width:100%; background:none; border:none; color:red; margin-top:10px;">Logout</button>
-    </div>
+        <div class="card">
+            <h3 style="margin-top:0"><i class="fa-solid fa-clock-rotate-left"></i> Recent Orders</h3>
+            <div id="historyList">Loading history...</div>
+        </div>
+        <button onclick="logout()" style="width:100%; background:none; border:none; color:red; margin-top:10px;">Logout</button>
+    </div>
 </div>
 
 <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbywfYeAIzBOFxy4BMuGXdjvGMoLoqsoCgSdi9jIw1tJa3kPgbwdVnVYRlDNvyCX9ZOq/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbxE7H76H4G22qPqe3w5y8VvYoXei1nC9suike-pxBEulcA-R3h-lXGYhw8gjCjMYFVO/exec";
 
-    const services = {
-        fb: [{id: 458, name: "Facebook Followers - 1590 MMK"}, {id: 375, name: "Facebook Post Like - 899 MMK"}],
-        tg: [{id: 506, name: "Telegram Member(30day+) - 1350 MMK"}, {id: 294, name: "Telegram Post View - 10 MMK"}],
-        tt: [{id: 505, name: "TikTok Followers - 22900 MMK"}]
-    };
+    const services = {
+        fb: [{id: 458, name: "Facebook Followers - 1590 MMK"}, {id: 375, name: "Facebook Post Like - 899 MMK"}],
+        tg: [{id: 506, name: "Telegram Member(30day+) - 1350 MMK"}, {id: 294, name: "Telegram Post View - 10 MMK"}],
+        tt: [{id: 505, name: "TikTok Followers - 22900 MMK"}]
+    };
 
-    function handleAuth(mode) {
-        const email = document.getElementById('loginEmail').value;
-        const pass = document.getElementById('loginPass').value;
-        if(!email || !pass) return alert("အချက်အလက် အကုန်ဖြည့်ပါ");
+    function handleAuth(mode) {
+    const email = document.getElementById('loginEmail').value;
+    const pass = document.getElementById('loginPass').value;
+    
+    if(!email || !pass) return alert("အချက်အလက် အကုန်ဖြည့်ပါ");
 
-        const action = (mode === 'signup') ? "signUp" : "checkLogin";
-        
-        fetch(`${scriptUrl}?action=${action}&userId=${email}&pass=${pass}`)
-        .then(res => res.text())
-        .then(data => {
-            if(data === "success") {
-                localStorage.setItem("smm_user_id", email);
-                localStorage.setItem("smm_user_pass", pass);
-                showDashboard(email);
-            } else if(data === "exists") {
-                alert("ဒီ Email နဲ့ အကောင့်ရှိပြီးသားပါ။ Login ဝင်ပါဗျာ။");
-            } else {
-                alert("အချက်အလက် မှားယွင်းနေပါသည်။");
-            }
-        });
-    }
-
-    function showDashboard(uid) {
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('main-dashboard').style.display = 'block';
-        document.getElementById('displayUserId').innerText = uid;
-        fetchBalance(uid);
-        loadHistory(uid);
-        
-        // ၃၀ စက္ကန့်တစ်ခါ balance နဲ့ history ကို auto update လုပ်ပေးရန်
-        setInterval(() => {
-            fetchBalance(uid);
-            loadHistory(uid);
-        }, 30000);
-    }
-
-    function fetchBalance(uid) {
-        fetch(scriptUrl + "?action=getBalance&userId=" + uid)
-        .then(res => res.text())
-        .then(data => {
-            document.getElementById('userBalance').innerText = data;
-        });
-    }
-
-    function updateServices() {
-        const cat = document.getElementById('category').value;
-        const sel = document.getElementById('serviceSelect');
-        sel.innerHTML = '<option value="">Choose a service</option>';
-        if(cat) {
-            services[cat].forEach(s => {
-                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-            });
+    const action = (mode === 'signup') ? "signUp" : "checkLogin";
+    
+    fetch(`${scriptUrl}?action=${action}&userId=${email}&pass=${pass}`)
+    .then(res => res.text())
+    .then(data => {
+        if(data === "success") {
+            localStorage.setItem("smm_user_id", email);
+            localStorage.setItem("smm_user_pass", pass);
+            showDashboard(email);
+        } else if(data === "exists") {
+            alert("ဒီ Email နဲ့ အကောင့်ရှိပြီးသားပါ။ Login ဝင်ပါဗျာ။");
+        } else {
+            alert("အချက်အလက် မှားယွင်းနေပါသည်။");
         }
-    }
+    })
+    .catch(err => {
+        // Network Error သို့မဟုတ် Script တုံ့ပြန်မှု မရရှိသည့်အခါ ပြပေးရန်
+        console.error("Auth Error:", err);
+        alert("လိုင်းမကောင်းပါသဖြင့် သို့မဟုတ် စာဗာချိတ်ဆက်မှု မရရှိသဖြင့် ပြန်ကြိုးစားကြည့်ပါဗျာ။");
+    });
+}
 
-    function placeOrder() {
-        const uid = localStorage.getItem("smm_user_id");
-        const sid = document.getElementById('serviceSelect').value;
-        const link = document.getElementById('link').value;
-        const qty = document.getElementById('qty').value;
-        if(!sid || !link || qty < 100) return alert("အချက်အလက်မှန်အောင်ဖြည့်ပါ။");
+    function showDashboard(uid) {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('main-dashboard').style.display = 'block';
+        document.getElementById('displayUserId').innerText = uid;
+        fetchBalance(uid);
+        loadHistory(uid);
+        
+        // ၃၀ စက္ကန့်တစ်ခါ balance နဲ့ history ကို auto update လုပ်ပေးရန်
+        setInterval(() => {
+            fetchBalance(uid);
+            loadHistory(uid);
+        }, 30000);
+    }
 
-        fetch(scriptUrl, {
-            method: "POST",
-            body: JSON.stringify({action: "addOrder", userId: uid, serviceId: sid, link: link, quantity: qty})
-        })
-        .then(res => res.text())
-        .then(data => {
-            alert(data);
-            fetchBalance(uid);
-            loadHistory(uid);
-        });
-    }
+    function fetchBalance(uid) {
+        fetch(scriptUrl + "?action=getBalance&userId=" + uid)
+        .then(res => res.text())
+        .then(data => {
+            document.getElementById('userBalance').innerText = data;
+        });
+    }
 
-    function uploadScreenshot(input) {
-        if (!input.files || !input.files[0]) return;
-        const file = input.files[0];
-        const reader = new FileReader();
-        const uid = localStorage.getItem("smm_user_id");
+    function updateServices() {
+        const cat = document.getElementById('category').value;
+        const sel = document.getElementById('serviceSelect');
+        sel.innerHTML = '<option value="">Choose a service</option>';
+        if(cat) {
+            services[cat].forEach(s => {
+                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        }
+    }
 
-        reader.onload = function(e) {
-            const base64Data = e.target.result.split(',')[1];
-            const btn = document.querySelector('button[onclick*="fileInput"]');
-            btn.innerText = "Sending...";
-            btn.disabled = true;
+    function placeOrder() {
+        const uid = localStorage.getItem("smm_user_id");
+        const sid = document.getElementById('serviceSelect').value;
+        const link = document.getElementById('link').value;
+        const qty = document.getElementById('qty').value;
+        if(!sid || !link || qty < 100) return alert("အချက်အလက်မှန်အောင်ဖြည့်ပါ။");
 
-            fetch(scriptUrl, {
-                method: "POST",
-                body: JSON.stringify({ action: "upload", userId: uid, image: base64Data })
-            })
-            .then(res => res.text())
-            .then(data => {
-                alert(data);
-                btn.innerText = "+ Add Funds";
-                btn.disabled = false;
-            })
-            .catch(err => {
-                alert("Error: " + err);
-                btn.innerText = "+ Add Funds";
-                btn.disabled = false;
-            });
-        };
-        reader.readAsDataURL(file);
-    }
+        fetch(scriptUrl, {
+            method: "POST",
+            body: JSON.stringify({action: "addOrder", userId: uid, serviceId: sid, link: link, quantity: qty})
+        })
+        .then(res => res.text())
+        .then(data => {
+            alert(data);
+            fetchBalance(uid);
+            loadHistory(uid);
+        });
+    }
 
-    function loadHistory(uid) {
-        fetch(scriptUrl + "?action=getHistory&userId=" + uid)
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('historyList');
-            container.innerHTML = "";
-            if(data.length === 0) {
-                container.innerHTML = "No recent orders.";
-                return;
-            }
-            
-            data.forEach(row => {
-                const orderId = row[2]; // Order ID
-                const link = row[3];    // Order Link
-                const qty = row[5];     // Quantity
-                const cost = row[6];    // Cost
-                const status = (row[7] || "pending").toLowerCase(); // Status (Pending, Completed, etc.)
-                
-                // Status အလိုက် အရောင်ခွဲခြားရန် CSS Class သတ်မှတ်ခြင်း
-                let statusClass = "status-pending";
-                if(status.includes("processing")) statusClass = "status-processing";
-                if(status.includes("progress")) statusClass = "status-inprogress";
-                if(status.includes("complete")) statusClass = "status-completed";
-                if(status.includes("partial")) statusClass = "status-partial";
-                if(status.includes("cancel")) statusClass = "status-cancelled";
+    function uploadScreenshot(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const reader = new FileReader();
+        const uid = localStorage.getItem("smm_user_id");
 
-                container.innerHTML += `
-                    <div class="history-item">
-                        <b>Order ID: ${orderId}</b> 
-                        <span class="status ${statusClass}">${status}</span><br>
-                        <a href="${link}" class="order-link" target="_blank">${link}</a>
-                        <div style="margin-top: 5px; color: #666;">
-                            <span><i class="fa-solid fa-layer-group"></i> ${qty} Qty</span> | 
-                            <span><i class="fa-solid fa-money-bill-wave"></i> ${cost} MMK</span>
-                        </div>
-                    </div>`;
-            });
-        });
-    }
+        reader.onload = function(e) {
+            const base64Data = e.target.result.split(',')[1];
+            const btn = document.querySelector('button[onclick*="fileInput"]');
+            btn.innerText = "Sending...";
+            btn.disabled = true;
 
-    function logout() {
-        localStorage.removeItem("smm_user_id");
-        localStorage.removeItem("smm_user_pass");
-        location.reload();
-    }
+            fetch(scriptUrl, {
+                method: "POST",
+                body: JSON.stringify({ action: "upload", userId: uid, image: base64Data })
+            })
+            .then(res => res.text())
+            .then(data => {
+                alert(data);
+                btn.innerText = "+ Add Funds";
+                btn.disabled = false;
+            })
+            .catch(err => {
+                alert("Error: " + err);
+                btn.innerText = "+ Add Funds";
+                btn.disabled = false;
+            });
+        };
+        reader.readAsDataURL(file);
+    }
 
-    window.onload = function() {
-        const savedId = localStorage.getItem("smm_user_id");
-        const savedPass = localStorage.getItem("smm_user_pass");
-        if(savedId && savedPass) showDashboard(savedId);
-    };
+    function loadHistory(uid) {
+    fetch(scriptUrl + "?action=getHistory&userId=" + uid)
+    .then(res => res.json())
+    .then(data => {
+        const container = document.getElementById('historyList');
+        container.innerHTML = "";
+        if(data.length === 0) { container.innerHTML = "No recent orders."; return; }
+        
+        data.forEach(row => {
+            const orderId = row[2];  // Column C
+            const orderLink = row[3]; // Column D (Link ပေါ်ဖို့ ဒါကို သုံးရမယ်)
+            const qty = row[5];      // Column F
+            const cost = row[6];     // Column G
+            const status = (row[7] || "Pending").toLowerCase(); // Column H (Status)
+
+            let statusClass = "status-pending";
+            if(status.includes("processing")) statusClass = "status-processing";
+            if(status.includes("progress")) statusClass = "status-inprogress";
+            if(status.includes("complete")) statusClass = "status-completed";
+            if(status.includes("partial")) statusClass = "status-partial";
+            if(status.includes("cancel")) statusClass = "status-cancelled";
+
+            container.innerHTML += `
+                <div class="history-item">
+                    <b>Order ID: ${orderId}</b> 
+                    <span class="status ${statusClass}">${status}</span><br>
+                    <a href="${orderLink}" class="order-link" target="_blank">${orderLink}</a>
+                    <div style="margin-top: 5px; color: #666;">
+                        <span><i class="fa-solid fa-layer-group"></i> ${qty} Qty</span> | 
+                        <span><i class="fa-solid fa-money-bill-wave"></i> ${cost} MMK</span>
+                    </div>
+                </div>`;
+        });
+    });
+}
+
+    function logout() {
+        localStorage.removeItem("smm_user_id");
+        localStorage.removeItem("smm_user_pass");
+        location.reload();
+    }
+
+    window.onload = function() {
+        const savedId = localStorage.getItem("smm_user_id");
+        const savedPass = localStorage.getItem("smm_user_pass");
+        if(savedId && savedPass) showDashboard(savedId);
+    };
 </script>
 </body>
 </html>
