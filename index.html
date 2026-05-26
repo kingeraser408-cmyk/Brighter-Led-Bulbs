@@ -14,8 +14,22 @@
         .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         select, input { width: 100%; padding: 12px; margin: 8px 0; border: 1.5px solid #ddd; border-radius: 10px; box-sizing: border-box; }
         .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .history-item { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 13px; }
-        .status { float: right; font-weight: bold; color: #ffa500; }
+        
+        /* Recent Orders Styling */
+        .history-item { border-bottom: 1px solid #eee; padding: 12px 0; font-size: 13px; line-height: 1.6; }
+        .history-item:last-child { border-bottom: none; }
+        .status { float: right; font-weight: bold; padding: 2px 8px; border-radius: 5px; text-transform: capitalize; }
+        
+        /* Status Colors */
+        .status-pending { color: #ffa500; background: #fff5e6; }
+        .status-processing { color: #007bff; background: #e6f0ff; }
+        .status-inprogress { color: #17a2b8; background: #e0f7fa; }
+        .status-completed { color: #28a745; background: #e6f4ea; }
+        .status-partial { color: #6f42c1; background: #f3e5f5; }
+        .status-cancelled { color: #dc3545; background: #fdeaea; }
+        
+        .order-link { color: var(--primary); text-decoration: none; word-break: break-all; display: block; margin-top: 4px; font-size: 11px; }
+
         #login-section { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
         .login-card { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     </style>
@@ -53,9 +67,9 @@
             <label>Category</label>
             <select id="category" onchange="updateServices()">
                 <option value="">Select Category</option>
-                <option value="fb">Facebook Services</option>
-                <option value="tg">Telegram Services</option>
-                <option value="tt">TikTok Services</option>
+                <option value="fb">Facebook Followers</option>
+                <option value="tg">Telegram Views/Members</option>
+                <option value="tt">TikTok Followers</option>
             </select>
             <label>Service</label>
             <select id="serviceSelect">
@@ -86,7 +100,7 @@
     function handleAuth(mode) {
         const email = document.getElementById('loginEmail').value;
         const pass = document.getElementById('loginPass').value;
-        if(!email || !pass) return alert("Email နှင့် Password ဖြည့်ပါ");
+        if(!email || !pass) return alert("အချက်အလက် အကုန်ဖြည့်ပါ");
 
         const action = (mode === 'signup') ? "signUp" : "checkLogin";
         
@@ -111,12 +125,20 @@
         document.getElementById('displayUserId').innerText = uid;
         fetchBalance(uid);
         loadHistory(uid);
+        
+        // ၃၀ စက္ကန့်တစ်ခါ balance နဲ့ history ကို auto update လုပ်ပေးရန်
+        setInterval(() => {
+            fetchBalance(uid);
+            loadHistory(uid);
+        }, 30000);
     }
 
     function fetchBalance(uid) {
         fetch(scriptUrl + "?action=getBalance&userId=" + uid)
         .then(res => res.text())
-        .then(data => { document.getElementById('userBalance').innerText = data; });
+        .then(data => {
+            document.getElementById('userBalance').innerText = data;
+        });
     }
 
     function updateServices() {
@@ -124,7 +146,9 @@
         const sel = document.getElementById('serviceSelect');
         sel.innerHTML = '<option value="">Choose a service</option>';
         if(cat) {
-            services[cat].forEach(s => { sel.innerHTML += `<option value="${s.id}">${s.name}</option>`; });
+            services[cat].forEach(s => {
+                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
         }
     }
 
@@ -184,18 +208,43 @@
         .then(data => {
             const container = document.getElementById('historyList');
             container.innerHTML = "";
-            if(data.length === 0) container.innerHTML = "No recent orders.";
+            if(data.length === 0) {
+                container.innerHTML = "No recent orders.";
+                return;
+            }
+            
             data.forEach(row => {
-                container.innerHTML += `<div class="history-item">
-                    <b>ID: ${row[2]}</b> <span class="status">${row[6]}</span><br>
-                    ${row[4]} Qty - ${row[5]} MMK
-                </div>`;
+                const orderId = row[2]; // Order ID
+                const link = row[3];    // Order Link
+                const qty = row[5];     // Quantity
+                const cost = row[6];    // Cost
+                const status = (row[7] || "pending").toLowerCase(); // Status (Pending, Completed, etc.)
+                
+                // Status အလိုက် အရောင်ခွဲခြားရန် CSS Class သတ်မှတ်ခြင်း
+                let statusClass = "status-pending";
+                if(status.includes("processing")) statusClass = "status-processing";
+                if(status.includes("progress")) statusClass = "status-inprogress";
+                if(status.includes("complete")) statusClass = "status-completed";
+                if(status.includes("partial")) statusClass = "status-partial";
+                if(status.includes("cancel")) statusClass = "status-cancelled";
+
+                container.innerHTML += `
+                    <div class="history-item">
+                        <b>Order ID: ${orderId}</b> 
+                        <span class="status ${statusClass}">${status}</span><br>
+                        <a href="${link}" class="order-link" target="_blank">${link}</a>
+                        <div style="margin-top: 5px; color: #666;">
+                            <span><i class="fa-solid fa-layer-group"></i> ${qty} Qty</span> | 
+                            <span><i class="fa-solid fa-money-bill-wave"></i> ${cost} MMK</span>
+                        </div>
+                    </div>`;
             });
         });
     }
 
     function logout() {
-        localStorage.clear();
+        localStorage.removeItem("smm_user_id");
+        localStorage.removeItem("smm_user_pass");
         location.reload();
     }
 
