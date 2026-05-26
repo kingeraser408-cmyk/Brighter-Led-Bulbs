@@ -1,260 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PPA SMM Panel</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root { --primary: #0066ff; --bg: #f4f7fe; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
-        .header { background: linear-gradient(135deg, #0066ff, #0044bb); color: white; padding: 30px 20px; text-align: center; border-radius: 0 0 30px 30px; }
-        .balance-card { background: white; width: 85%; margin: -30px auto 20px; padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .container { padding: 15px; }
-        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        select, input { width: 100%; padding: 12px; margin: 8px 0; border: 1.5px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        
-        /* Recent Orders Styling */
-        .history-item { border-bottom: 1px solid #eee; padding: 12px 0; font-size: 13px; line-height: 1.6; }
-        .history-item:last-child { border-bottom: none; }
-        .status { float: right; font-weight: bold; padding: 2px 8px; border-radius: 5px; text-transform: capitalize; }
-        
-        /* Status Colors */
-        .status-pending { color: #ffa500; background: #fff5e6; }
-        .status-processing { color: #007bff; background: #e6f0ff; }
-        .status-inprogress { color: #17a2b8; background: #e0f7fa; }
-        .status-completed { color: #28a745; background: #e6f4ea; }
-        .status-partial { color: #6f42c1; background: #f3e5f5; }
-        .status-cancelled { color: #dc3545; background: #fdeaea; }
-        
-        .order-link { color: var(--primary); text-decoration: none; word-break: break-all; display: block; margin-top: 4px; font-size: 11px; }
-
-        #login-section { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
-        .login-card { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Text Scanner</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f4; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; shadow: 0 0 10px rgba(0,0,0,0.1); }
+        #video { width: 100%; border-radius: 5px; margin-bottom: 10px; }
+        #canvas { display: none; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; background: #e9e9e9; min-height: 50px; text-align: left; white-space: pre-wrap; border-radius: 5px; }
+        .loading { color: orange; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-<div id="login-section">
-    <div class="login-card">
-        <h2 style="text-align: center; color: var(--primary);">PPA PANEL</h2>
-        <input type="text" id="loginEmail" placeholder="Email / User ID">
-        <input type="password" id="loginPass" placeholder="Password">
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-main" style="flex:1;" onclick="handleAuth('login')">LOGIN</button>
-            <button class="btn-main" style="flex:1; background: #34c759;" onclick="handleAuth('signup')">SIGN UP</button>
-        </div>
-    </div>
+<div class="container">
+    <h2>Text Scanner (OCR)</h2>
+    
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    
+    <br>
+    <button onclick="scanText()">SCAN (စာသားဖတ်ရန်)</button>
+
+    <div id="status"></div>
+    <div id="result">ဖတ်ထားသော စာသားများ ဤနေရာတွင် ပေါ်လာမည်...</div>
 </div>
 
-<div id="main-dashboard" style="display:none;">
-    <div class="header">
-        <h2 style="margin:0">PPA SMM PANEL</h2>
-        <small id="displayUserId"></small>
-    </div>
-
-    <div class="balance-card">
-        <p style="margin:0; color:#888;">Available Balance</p>
-        <h2 style="color:var(--primary); margin:10px 0;"><span id="userBalance">0</span> MMK</h2>
-        <button onclick="document.getElementById('fileInput').click()" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:8px 15px; border-radius:20px;">+ Add Funds</button>
-        <input type="file" id="fileInput" style="display:none" onchange="uploadScreenshot(this)">
-    </div>
-
-    <div class="container">
-        <div class="card">
-            <h3 style="margin-top:0"><i class="fa-solid fa-cart-plus"></i> New Order</h3>
-            <label>Category</label>
-            <select id="category" onchange="updateServices()">
-                <option value="">Select Category</option>
-                <option value="fb">Facebook Followers</option>
-                <option value="tg">Telegram Views/Members</option>
-                <option value="tt">TikTok Followers</option>
-            </select>
-            <label>Service</label>
-            <select id="serviceSelect">
-                <option value="">Choose a service</option>
-            </select>
-            <input type="text" id="link" placeholder="Target Link (https://...)">
-            <input type="number" id="qty" placeholder="Quantity (Min: 100)">
-            <button class="btn-main" onclick="placeOrder()">PLACE ORDER</button>
-        </div>
-
-        <div class="card">
-            <h3 style="margin-top:0"><i class="fa-solid fa-clock-rotate-left"></i> Recent Orders</h3>
-            <div id="historyList">Loading history...</div>
-        </div>
-        <button onclick="logout()" style="width:100%; background:none; border:none; color:red; margin-top:10px;">Logout</button>
-    </div>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbw5zMd90kqjpj3UkfXxbEa8DAtJ4Rs-4A5klbjP1NtIzCryzFNxB6SEBQZrXOqvm4TS/exec";
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const resultDiv = document.getElementById('result');
+    const statusDiv = document.getElementById('status');
 
-    const services = {
-        fb: [{id: 458, name: "Facebook Followers - 1590 MMK"}, {id: 375, name: "Facebook Post Like - 899 MMK"}],
-        tg: [{id: 506, name: "Telegram Member(30day+) - 1350 MMK"}, {id: 294, name: "Telegram Post View - 10 MMK"}],
-        tt: [{id: 505, name: "TikTok Followers - 22900 MMK"}]
-    };
-
-    function handleAuth(mode) {
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPass').value;
-    
-    if(!email || !pass) return alert("အချက်အလက် အကုန်ဖြည့်ပါ");
-
-    const action = (mode === 'signup') ? "signUp" : "checkLogin";
-    
-    fetch(`${scriptUrl}?action=${action}&userId=${email}&pass=${pass}`)
-    .then(res => res.text())
-    .then(data => {
-        if(data === "success") {
-            localStorage.setItem("smm_user_id", email);
-            localStorage.setItem("smm_user_pass", pass);
-            showDashboard(email);
-        } else if(data === "exists") {
-            alert("ဒီ Email နဲ့ အကောင့်ရှိပြီးသားပါ။ Login ဝင်ပါဗျာ။");
-        } else {
-            alert("အချက်အလက် မှားယွင်းနေပါသည်။");
+    // ၁။ ဖုန်းကင်မရာကို ဖွင့်ခြင်း
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            video.srcObject = stream;
+        } catch (err) {
+            alert("ကင်မရာဖွင့်လို့မရပါ: " + err);
         }
-    })
-    .catch(err => {
-        // Network Error သို့မဟုတ် Script တုံ့ပြန်မှု မရရှိသည့်အခါ ပြပေးရန်
-        console.error("Auth Error:", err);
-        alert("လိုင်းမကောင်းပါသဖြင့် သို့မဟုတ် စာဗာချိတ်ဆက်မှု မရရှိသဖြင့် ပြန်ကြိုးစားကြည့်ပါဗျာ။");
-    });
-}
+    }
 
-    function showDashboard(uid) {
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('main-dashboard').style.display = 'block';
-        document.getElementById('displayUserId').innerText = uid;
-        fetchBalance(uid);
-        loadHistory(uid);
-        
-        // ၃၀ စက္ကန့်တစ်ခါ balance နဲ့ history ကို auto update လုပ်ပေးရန်
-        setInterval(() => {
-            fetchBalance(uid);
-            loadHistory(uid);
-        }, 30000);
-    }
+    // ၂။ ပုံထဲက စာသားကို ဖတ်ခြင်း (OCR Process)
+    async function scanText() {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    function fetchBalance(uid) {
-        fetch(scriptUrl + "?action=getBalance&userId=" + uid)
-        .then(res => res.text())
-        .then(data => {
-            document.getElementById('userBalance').innerText = data;
-        });
-    }
+        statusDiv.innerHTML = '<p class="loading">စာသားများကို ဖတ်နေသည်... ခဏစောင့်ပါ...</p>';
+        resultDiv.innerText = "";
 
-    function updateServices() {
-        const cat = document.getElementById('category').value;
-        const sel = document.getElementById('serviceSelect');
-        sel.innerHTML = '<option value="">Choose a service</option>';
-        if(cat) {
-            services[cat].forEach(s => {
-                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-            });
-        }
-    }
+        // Tesseract.js အသုံးပြု၍ စာသားထုတ်ယူခြင်း
+        Tesseract.recognize(
+            canvas.toDataURL('image/png'),
+            'eng', // အင်္ဂလိပ်စာအတွက် (မြန်မာစာအတွက် 'mya' ပြောင်းနိုင်သည်)
+            { logger: m => console.log(m) }
+        ).then(({ data: { text } }) => {
+            statusDiv.innerHTML = '<p style="color:green;">ဖတ်လို့ပြီးပါပြီ။</p>';
+            resultDiv.innerText = text;
+        }).catch(err => {
+            statusDiv.innerHTML = '<p style="color:red;">အမှားအယွင်းရှိနေပါသည်။</p>';
+            console.error(err);
+        });
+    }
 
-    function placeOrder() {
-        const uid = localStorage.getItem("smm_user_id");
-        const sid = document.getElementById('serviceSelect').value;
-        const link = document.getElementById('link').value;
-        const qty = document.getElementById('qty').value;
-        if(!sid || !link || qty < 100) return alert("အချက်အလက်မှန်အောင်ဖြည့်ပါ။");
-
-        fetch(scriptUrl, {
-            method: "POST",
-            body: JSON.stringify({action: "addOrder", userId: uid, serviceId: sid, link: link, quantity: qty})
-        })
-        .then(res => res.text())
-        .then(data => {
-            alert(data);
-            fetchBalance(uid);
-            loadHistory(uid);
-        });
-    }
-
-    function uploadScreenshot(input) {
-        if (!input.files || !input.files[0]) return;
-        const file = input.files[0];
-        const reader = new FileReader();
-        const uid = localStorage.getItem("smm_user_id");
-
-        reader.onload = function(e) {
-            const base64Data = e.target.result.split(',')[1];
-            const btn = document.querySelector('button[onclick*="fileInput"]');
-            btn.innerText = "Sending...";
-            btn.disabled = true;
-
-            fetch(scriptUrl, {
-                method: "POST",
-                body: JSON.stringify({ action: "upload", userId: uid, image: base64Data })
-            })
-            .then(res => res.text())
-            .then(data => {
-                alert(data);
-                btn.innerText = "+ Add Funds";
-                btn.disabled = false;
-            })
-            .catch(err => {
-                alert("Error: " + err);
-                btn.innerText = "+ Add Funds";
-                btn.disabled = false;
-            });
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function loadHistory(uid) {
-    fetch(scriptUrl + "?action=getHistory&userId=" + uid)
-    .then(res => res.json())
-    .then(data => {
-        const container = document.getElementById('historyList');
-        container.innerHTML = "";
-        if(data.length === 0) { container.innerHTML = "No recent orders."; return; }
-        
-        data.forEach(row => {
-            const orderId = row[2];  // Column C
-            const orderLink = row[3]; // Column D (Link ပေါ်ဖို့ ဒါကို သုံးရမယ်)
-            const qty = row[5];      // Column F
-            const cost = row[6];     // Column G
-            const status = (row[7] || "Pending").toLowerCase(); // Column H (Status)
-
-            let statusClass = "status-pending";
-            if(status.includes("processing")) statusClass = "status-processing";
-            if(status.includes("progress")) statusClass = "status-inprogress";
-            if(status.includes("complete")) statusClass = "status-completed";
-            if(status.includes("partial")) statusClass = "status-partial";
-            if(status.includes("cancel")) statusClass = "status-cancelled";
-
-            container.innerHTML += `
-                <div class="history-item">
-                    <b>Order ID: ${orderId}</b> 
-                    <span class="status ${statusClass}">${status}</span><br>
-                    <a href="${orderLink}" class="order-link" target="_blank">${orderLink}</a>
-                    <div style="margin-top: 5px; color: #666;">
-                        <span><i class="fa-solid fa-layer-group"></i> ${qty} Qty</span> | 
-                        <span><i class="fa-solid fa-money-bill-wave"></i> ${cost} MMK</span>
-                    </div>
-                </div>`;
-        });
-    });
-}
-
-    function logout() {
-        localStorage.removeItem("smm_user_id");
-        localStorage.removeItem("smm_user_pass");
-        location.reload();
-    }
-
-    window.onload = function() {
-        const savedId = localStorage.getItem("smm_user_id");
-        const savedPass = localStorage.getItem("smm_user_pass");
-        if(savedId && savedPass) showDashboard(savedId);
-    };
+    // App စတင်တာနဲ့ ကင်မရာဖွင့်မည်
+    startCamera();
 </script>
+
 </body>
 </html>
